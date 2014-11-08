@@ -1,3 +1,5 @@
+import ipaddress
+
 second = 1
 minute = 60*second
 hour = 60*minute
@@ -5,8 +7,8 @@ day = 24*hour
 
 class Address:
     def __init__(self, IPv4 = None, IPv6 = None):
-        self._IPv4 = IPv4
-        self._IPv6 = IPv6
+        self._IPv4 = None if IPv4 is None else ipaddress.IPv4Address(IPv4)
+        self._IPv6 = None if IPv6 is None else ipaddress.IPv6Address(IPv6)
     
     def IPv4(self):
         return Address(IPv4 = self._IPv4)
@@ -40,3 +42,6 @@ class Zone:
         self._NX_TTL = other_TTL if NX_TTL is None else NX_TTL
         self._A_TTL = other_TTL if A_TTL is None else A_TTL
         self._other_TTL = other_TTL
+    
+    def write(self, file):
+        raise NotImplementedError()

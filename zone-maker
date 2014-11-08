@@ -12,7 +12,9 @@ def load_module(name, path, write_bytecode = False):
 def make_zone(filename):
     zonefile = load_module(os.path.basename(filename), filename)
     zones = zonefile.__zones__
-    # TODO do something with the zones
+    # TODO do something more clever with the zones
+    for zone in zones:
+        zone.write(sys.stdout)
 
 if __name__ == "__main__":
     for name in sys.argv[1:]:
