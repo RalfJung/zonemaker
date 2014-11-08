@@ -1,3 +1,4 @@
+from typing import List, Dict, Any
 import ipaddress, re
 
 second = 1
@@ -5,7 +6,7 @@ minute = 60*second
 hour = 60*minute
 day = 24*hour
 
-def hostname(name):
+def hostname(name: str) -> str:
     # check hostname for validity
     label = r'[a-zA-Z90-9]([a-zA-Z90-9-]{0,61}[a-zA-Z90-9])?' # must not start or end with hyphen
     pattern = r'^{0}(\.{0})*\.?'.format(label)
@@ -43,10 +44,10 @@ class Delegation():
         pass
 
 class Zone:
-    def __init__(self, name, mail, NS,
-                 secondary_refresh, secondary_retry, secondary_discard,
-                 NX_TTL = None, A_TTL = None, other_TTL = None,
-                 domains = []):
+    def __init__(self, name: str, mail: str, NS: List[str],
+                 secondary_refresh: int, secondary_retry: int, secondary_discard: int,
+                 NX_TTL: int = None, A_TTL: int = None, other_TTL: int = None,
+                 domains: Dict[str, Any] = {}) -> None:
         self._name = hostname(name)
         if not mail.endswith('.'): raise Exception("Mail must be absolute, end with a dot")
         atpos = mail.find('@')
