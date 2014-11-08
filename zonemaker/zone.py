@@ -1,5 +1,7 @@
+import re
+from ipaddress import IPv4Address, IPv6Address
 from typing import List, Dict, Any
-import ipaddress, re
+
 
 second = 1
 minute = 60*second
@@ -16,9 +18,9 @@ def hostname(name: str) -> str:
     raise Exception(name+" is not a valid hostname")
 
 class Address:
-    def __init__(self, IPv4 = None, IPv6 = None):
-        self._IPv4 = None if IPv4 is None else ipaddress.IPv4Address(IPv4)
-        self._IPv6 = None if IPv6 is None else ipaddress.IPv6Address(IPv6)
+    def __init__(self, IPv4: str = None, IPv6: str = None) -> None:
+        self._IPv4 = None if IPv4 is None else IPv4Address(IPv4)
+        self._IPv6 = None if IPv6 is None else IPv6Address(IPv6)
     
     def IPv4(self):
         return Address(IPv4 = self._IPv4)
@@ -27,20 +29,21 @@ class Address:
         return Address(IPv6 = self._IPv6)
 
 class Name:
-    def __init__(self, address = None, MX = None, TCP = None, UDP = None):
+    def __init__(self, address: Address = None, MX: List = None,
+                 TCP: Dict[int, Any] = None, UDP: Dict[int, Any] = None) -> None:
         self._address = address
 
 class Service:
-    def __init__(self, SRV = None, TLSA=None):
+    def __init__(self, SRV: str = None, TLSA: str=None) -> None:
         self._SRV = SRV
         self._TLSA = TLSA
 
 class CName:
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         self._name = name
 
 class Delegation():
-    def __init__(self, NS, DS = None):
+    def __init__(self, NS: str, DS: str = None) -> None:
         pass
 
 class Zone:
