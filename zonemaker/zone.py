@@ -48,9 +48,9 @@ class Zone:
                  NX_TTL = None, A_TTL = None, other_TTL = None,
                  domains = []):
         self._name = hostname(name)
-        assert mail.endswith('.'), "Mail must be absolute, end with a dot"
+        if not mail.endswith('.'): raise Exception("Mail must be absolute, end with a dot")
         atpos = mail.find('@')
-        assert atpos >= 0 and atpos < mail.find('.'), "Mail must contain an @ before the first dot"
+        if atpos < 0 or atpos > mail.find('.'): raise Exception("Mail must contain an @ before the first dot")
         self._mail = hostname(mail.replace('@', '.', 1))
         self._NS = list(map(hostname, NS))
         
