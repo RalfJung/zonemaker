@@ -1,0 +1,20 @@
+#!/usr/bin/python3
+import sys, os
+
+def load_module(name, path, write_bytecode = False):
+    import importlib.machinery
+    old_val = sys.dont_write_bytecode
+    sys.dont_write_bytecode = not write_bytecode
+    module = importlib.machinery.SourceFileLoader(name, path).load_module()
+    sys.dont_write_bytecode = old_val
+    return module
+
+def make_zone(filename):
+    zonefile = load_module(os.path.basename(filename), filename)
+    zones = zonefile.__zones__
+    # TODO do something with the zones
+
+if __name__ == "__main__":
+    for name in sys.argv[1:]:
+        make_zone(name)
+
