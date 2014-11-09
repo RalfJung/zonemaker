@@ -1,6 +1,6 @@
 import re
 from ipaddress import IPv4Address, IPv6Address
-from typing import List, Dict, Any, Iterator
+from typing import List, Dict, Any, Iterator, Tuple, Sequence
 
 
 second = 1
@@ -8,6 +8,9 @@ minute = 60*second
 hour = 60*minute
 day = 24*hour
 week = 7*day
+
+TCP = 'tcp'
+UDP = 'udp'
 
 def check_hostname(name: str) -> str:
     # check hostname for validity
@@ -31,57 +34,119 @@ def time(time: int) -> str:
     else:
         return str(time)
 
-class Address:
-    # mypy does not know about the ipaddress types, so leave this class unannotated for now
-    def __init__(self, IPv4 = None, IPv6 = None) -> None:
-        if IPv4 is None and IPv6 is None:
-            raise Exception("There has to be at least one valid address!")
-        self._IPv4 = None if IPv4 is None else IPv4Address(IPv4)
-        self._IPv6 = None if IPv6 is None else IPv6Address(IPv6)
-    
-    def IPv4(self):
-        return Address(IPv4 = self._IPv4)
-    
-    def IPv6(self):
-        return Address(IPv6 = self._IPv6)
-    
-    def generate_rrs(self, owner: str, zone: 'Zone') -> Iterator:
-        if self._IPv4 is not None:
-            yield zone.RR(owner, 'A', self._IPv4)
-        if self._IPv6 is not None:
-            yield zone.RR(owner, 'AAAA', self._IPv6)
+def column_widths(datas: Sequence, widths: Sequence[int]):
+    assert len(datas) == len(widths)+1, "There must be as one more data points as widths"
+    result = ""
+    width_sum = 0
+    for data, width in zip(datas, widths): # will *not* cover the last point
+        result += str(data)+" " # add data point, and a minimal space
+        width_sum += width
+        if len(result) < width_sum: # add padding
+            result += (width_sum - len(result))*" "
+    # last data point
+    return result+str(datas[-1])
 
-class Name:
-    def __init__(self, address: Address = None, MX: List = None,
-                 TCP: Dict[int, Any] = None, UDP: Dict[int, Any] = None) -> None:
-        self._address = address
+
+## Record types
+class A:
+    def __init__(self, address: str) -> None:
+        self._address = IPv4Address(address)
     
-    def generate_rrs(self, owner: str, zone: 'Zone') -> Iterator:
-        if self._address is not None:
-            for rr in self._address.generate_rrs(owner, zone):
-                yield rr
-        # TODO
+    def generate_rr(self, owner: str, zone: 'Zone') -> Any:
+        return zone.RR(owner, 'A', self._address)
 
-class Service:
-    def __init__(self, SRV: str = None, TLSA: str=None) -> None:
-        self._SRV = None if SRV is None else check_hostname(SRV)
-        self._TLSA = TLSA
 
-class CName:
+class AAAA:
+    def __init__(self, address: str) -> None:
+        self._address = IPv6Address(address)
+    
+    def generate_rr(self, owner: str, zone: 'Zone') -> Any:
+        return zone.RR(owner, 'AAAA', self._address)
+
+
+class MX:
+    def __init__(self, name: str, prio: int = 10) -> None:
+        self._priority = int(prio)
+        self._name = check_hostname(name)
+    
+    def generate_rr(self, owner: str, zone: 'Zone') -> Any:
+        return zone.RR(owner, 'MX', '{0} {1}'.format(self._priority, zone.abs_hostname(self._name)))
+
+
+class SRV:
+    def __init__(self, protocol: str, service: str, name: str, port: int, prio: int, weight: int) -> None:
+        self._service = str(service)
+        self._protocol = str(protocol)
+        self._priority = int(prio)
+        self._weight = int(weight)
+        self._port = int(port)
+        self._name = check_hostname(name)
+    
+    def generate_rr(self, owner: str, zone: 'Zone') -> Any:
+        return zone.RR('_{0}._{1}.{2}'.format(self._service, self._protocol, owner), 'SRV',
+                       '{0} {1} {2} {3}'.format(self._priority, self._weight, self._port, zone.abs_hostname(self._name)))
+
+
+class TLSA:
+    def __init__(self, protocol: str, port: int, key: str) -> None:
+        # TODO: fix key stuff
+        self._port = int(port)
+        self._protocol = str(protocol)
+        self._key = str(key)
+    
+    def generate_rr(self, owner: str, zone: 'Zone') -> Any:
+        return zone.RR('_{0}._{1}.{2}'.format(self._port, self._protocol, owner), 'TLSA', self._key)
+
+
+class CNAME:
     def __init__(self, name: str) -> None:
         self._name = check_hostname(name)
     
-    def generate_rrs(self, owner: str, zone: 'Zone') -> Iterator:
-        yield zone.RR(owner, 'CNAME', zone.abs_hostname(self._name))
+    def generate_rr(self, owner: str, zone: 'Zone') -> Any:
+        return zone.RR(owner, 'CNAME', zone.abs_hostname(self._name))
 
-class Delegation():
-    def __init__(self, NS: str, DS: str = None) -> None:
-        self._NS = NS
-        self._DS = DS
+
+class NS:
+    def __init__(self, name: str) -> None:
+        self._name = check_hostname(name)
+    
+    def generate_rr(self, owner: str, zone: 'Zone') -> Any:
+        return zone.RR(owner, 'NS', zone.abs_hostname(self._name))
+
+
+class DS:
+    def __init__(self, key: str) -> None:
+        # TODO: fix key stuff
+        self._key = str(key)
+    
+    def generate_rr(self, owner: str, zone: 'Zone') -> Any:
+        return zone.RR(owner, 'DS', self._key)
+
+## Higher-level classes
+class Name:
+    def __init__(self, *records: List[Any]) -> None:
+        self._records = records
     
     def generate_rrs(self, owner: str, zone: 'Zone') -> Iterator:
-        yield zone.RR(owner, 'NS', zone.abs_hostname(self._NS))
-        # TODO DS
+        for record in self._records:
+            # this could still be a list
+            if isinstance(record, list):
+                for subrecord in record:
+                    yield subrecord.generate_rr(owner, zone)
+            else:
+                yield record.generate_rr(owner, zone)
+
+
+def CName(name: str) -> Name:
+    return Name(CNAME(name))
+
+
+def Delegation(name: str, key: str = None) -> Name:
+    records = [NS(name)]
+    if key is not None:
+        records.append(DS(key))
+    return Name(*records)
+
 
 class Zone:
     def __init__(self, name: str, serialfile: str, dbfile: str, mail: str, NS: List[str],
@@ -121,9 +186,11 @@ class Zone:
         if TTL is None:
             TTL = self._other_TTL
         # be done
-        return "{0:<31} {1:<7} {2:<7} {3}".format(self.abs_hostname(owner), TTL, recordType, data)
+        return column_widths((self.abs_hostname(owner), time(TTL), recordType, data), (32, 8, 8))
     
     def abs_hostname(self, name):
+        if name == '.' or name == '@':
+            return self._name
         if name.endswith('.'):
             return name
         return name+"."+self._name
@@ -155,9 +222,8 @@ class Zone:
                           NX_TTL=time(self._NX_TTL))
                       )
         # NS records
-        for ns in self._NS:
-            yield self.RR(self._name, 'NS', self.abs_hostname(ns))
-        
+        for name in self._NS:
+            yield NS(name).generate_rr(self._name, self)
         # all the rest
         for name in sorted(self._domains.keys(), key=lambda s: list(reversed(s.split('.')))):
             for rr in self._domains[name].generate_rrs(name, self):
