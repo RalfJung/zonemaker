@@ -121,7 +121,7 @@ class Zone:
         if TTL is None:
             TTL = self._other_TTL
         # be done
-        return "{0}\t{1}\t{2}\t{3}".format(self.abs_hostname(owner), TTL, recordType, data)
+        return "{0:<31} {1:<7} {2:<7} {3}".format(self.abs_hostname(owner), TTL, recordType, data)
     
     def abs_hostname(self, name):
         if name.endswith('.'):
