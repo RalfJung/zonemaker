@@ -17,15 +17,6 @@ def check_hostname(name: str) -> str:
         return name
     raise Exception(name+" is not a valid hostname")
 
-def abs_hostname(name: str, root: str = None) -> str:
-    if name.endswith('.'):
-        return name
-    if root is None:
-        raise Exception("Name {0} was expected to be absolute, but it is not".format(name))
-    if not root.endswith('.'):
-        raise Exception("Root {0} was expected to be absolute, but it is not".format(name))
-    return name+"."+root
-
 def time(time: int) -> str:
     if time == 0:
         return "0"
@@ -70,22 +61,15 @@ class Delegation():
     def __init__(self, NS: str, DS: str = None) -> None:
         pass
 
-class RR():
-    def __init__(self, owner: str, TTL: int, recordType: str, data: str) -> None:
-        assert owner.endswith('.') # users have to make this absolute first
-        self._owner = owner
-        self._TTL = TTL
-        self._recordType = recordType
-        self._data = data
-    
-    def __str__(self) -> str:
-        return "{0}\t{1}\t{2}\t{3}".format(self._owner, self._TTL, self._recordType, self._data)
-
 class Zone:
-    def __init__(self, name: str, mail: str, NS: List[str],
+    def __init__(self, name: str, serialfile: str, dbfile: str, mail: str, NS: List[str],
                  secondary_refresh: int, secondary_retry: int, secondary_expire: int,
                  NX_TTL: int = None, A_TTL: int = None, other_TTL: int = None,
                  domains: Dict[str, Any] = {}) -> None:
+        self._serialfile = serialfile
+        self._dbfile = dbfile
+        
+        if not name.endswith('.'): raise Exception("Expected an absolute hostname")
         self._name = check_hostname(name)
         if not mail.endswith('.'): raise Exception("Mail must be absolute, end with a dot")
         atpos = mail.find('@')
@@ -97,20 +81,67 @@ class Zone:
         self._retry = secondary_retry
         self._expire = secondary_expire
         
-        assert other_TTL is not None
-        self._NX_TTL = other_TTL if NX_TTL is None else NX_TTL
-        self._A_TTL = other_TTL if A_TTL is None else A_TTL
+        if other_TTL is None: raise Exception("Must give other_TTL")
+        self._NX_TTL = NX_TTL
+        self._A_TTL = A_TTL
         self._other_TTL = other_TTL
+        
+        self._domains = domains
     
-    def generate_rrs(self) -> Iterator[RR]:
-        serial = -1
-        yield (RR(abs_hostname(self._name), self._other_TTL, 'SOA',
-                  '{NS} {mail} ({serial} {refresh} {retry} {expire} {NX_TTL})'.format(
-                      NS=self._NS[0], mail=self._mail, serial=serial,
-                      refresh=time(self._refresh), retry=time(self._retry), expire=time(self._expire),
-                      NX_TTL=time(self._NX_TTL))
-                  ))
+    def RR(self, owner: str, recordType: str, data: str) -> str:
+        '''generate given RR, in textual representation'''
+        assert re.match(r'^[A-Z]+$', recordType), "got invalid record type"
+        # figure out TTL
+        attrname = "_"+recordType+"_TTL"
+        TTL = None # type: int
+        if hasattr(self, attrname):
+            TTL = getattr(self, attrname)
+        if TTL is None:
+            TTL = self._other_TTL
+        # be done
+        return "{0}\t{1}\t{2}\t{3}".format(self.abs_hostname(owner), TTL, recordType, data)
     
-    def write(self, file:Any) -> None:
+    def abs_hostname(self, name):
+        if name.endswith('.'):
+            return name
+        return name+"."+self._name
+    
+    def inc_serial(self) -> int:
+        # get serial
+        cur_serial = 0
+        try:
+            with open(self._serialfile) as f:
+                cur_serial = int(f.read())
+        except FileNotFoundError:
+            pass
+        # increment serial
+        cur_serial += 1
+        # save serial
+        with open(self._serialfile, 'w') as f:
+            f.write(str(cur_serial))
+        # be done
+        return cur_serial
+    
+    def generate_rrs(self) -> Iterator:
+        # SOA record
+        serial = self.inc_serial()
+        yield self.RR(self._name, 'SOA',
+                      ('{NS} {mail} ({serial} {refresh} {retry} {expire} {NX_TTL}) ; '+
+                      '(serial refresh retry expire NX_TTL)').format(
+                          NS=self.abs_hostname(self._NS[0]), mail=self._mail, serial=serial,
+                          refresh=time(self._refresh), retry=time(self._retry), expire=time(self._expire),
+                          NX_TTL=time(self._NX_TTL))
+                      )
+        # NS records
+        for ns in self._NS:
+            yield self.RR(self._name, 'NS', self.abs_hostname(ns))
+        
+        # all the rest
+        for name in sorted(self._domains.keys(), key=lambda s: list(reversed(s.split('.')))):
+            print(name)
+            #for rr in self._domains[name].generate_rrs(self):
+                #yield rr
+    
+    def write(self) -> None:
         for rr in self.generate_rrs():
             print(rr)
