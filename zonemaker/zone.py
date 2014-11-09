@@ -164,5 +164,7 @@ class Zone:
                 yield rr
     
     def write(self) -> None:
-        for rr in self.generate_rrs():
-            print(rr)
+        with open(self._dbfile, 'w') as f:
+            for rr in self.generate_rrs():
+                f.write(rr+"\n")
+                print(rr)
