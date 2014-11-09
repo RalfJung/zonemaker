@@ -34,6 +34,8 @@ def time(time: int) -> str:
 class Address:
     # mypy does not know about the ipaddress types, so leave this class unannotated for now
     def __init__(self, IPv4 = None, IPv6 = None) -> None:
+        if IPv4 is None and IPv6 is None:
+            raise Exception("There has to be at least one valid address!")
         self._IPv4 = None if IPv4 is None else IPv4Address(IPv4)
         self._IPv6 = None if IPv6 is None else IPv6Address(IPv6)
     
@@ -42,11 +44,23 @@ class Address:
     
     def IPv6(self):
         return Address(IPv6 = self._IPv6)
+    
+    def generate_rrs(self, owner: str, zone: 'Zone') -> Iterator:
+        if self._IPv4 is not None:
+            yield zone.RR(owner, 'A', self._IPv4)
+        if self._IPv6 is not None:
+            yield zone.RR(owner, 'AAAA', self._IPv6)
 
 class Name:
     def __init__(self, address: Address = None, MX: List = None,
                  TCP: Dict[int, Any] = None, UDP: Dict[int, Any] = None) -> None:
         self._address = address
+    
+    def generate_rrs(self, owner: str, zone: 'Zone') -> Iterator:
+        if self._address is not None:
+            for rr in self._address.generate_rrs(owner, zone):
+                yield rr
+        # TODO
 
 class Service:
     def __init__(self, SRV: str = None, TLSA: str=None) -> None:
@@ -56,10 +70,18 @@ class Service:
 class CName:
     def __init__(self, name: str) -> None:
         self._name = check_hostname(name)
+    
+    def generate_rrs(self, owner: str, zone: 'Zone') -> Iterator:
+        yield zone.RR(owner, 'CNAME', zone.abs_hostname(self._name))
 
 class Delegation():
     def __init__(self, NS: str, DS: str = None) -> None:
-        pass
+        self._NS = NS
+        self._DS = DS
+    
+    def generate_rrs(self, owner: str, zone: 'Zone') -> Iterator:
+        yield zone.RR(owner, 'NS', zone.abs_hostname(self._NS))
+        # TODO DS
 
 class Zone:
     def __init__(self, name: str, serialfile: str, dbfile: str, mail: str, NS: List[str],
@@ -83,7 +105,7 @@ class Zone:
         
         if other_TTL is None: raise Exception("Must give other_TTL")
         self._NX_TTL = NX_TTL
-        self._A_TTL = A_TTL
+        self._A_TTL = self._AAAA_TTL = A_TTL
         self._other_TTL = other_TTL
         
         self._domains = domains
@@ -138,9 +160,8 @@ class Zone:
         
         # all the rest
         for name in sorted(self._domains.keys(), key=lambda s: list(reversed(s.split('.')))):
-            print(name)
-            #for rr in self._domains[name].generate_rrs(self):
-                #yield rr
+            for rr in self._domains[name].generate_rrs(name, self):
+                yield rr
     
     def write(self) -> None:
         for rr in self.generate_rrs():
