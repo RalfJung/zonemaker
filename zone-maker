@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 import sys, os
+from zonemaker.zone import Zone
+from typing import Sequence
 
 def load_module(name, path, write_bytecode = False):
     import importlib.machinery
@@ -9,10 +11,9 @@ def load_module(name, path, write_bytecode = False):
     sys.dont_write_bytecode = old_val
     return module
 
-def make_zone(filename):
+def make_zone(filename: str) -> None:
     zonefile = load_module(os.path.basename(filename), filename)
-    zones = zonefile.__zones__
-    # TODO do something more clever with the zones
+    zones = zonefile.__zones__ # type: Sequence[Zone]
     for zone in zones:
         zone.write(sys.stdout)
 
