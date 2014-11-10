@@ -257,8 +257,8 @@ class Zone:
         # SOA record
         serial = self.inc_serial()
         yield self.RR(self._name, 'SOA',
-                      ('{NS} {mail} ({serial} {refresh} {retry} {expire} {NX_TTL}) ; '+
-                      '(serial refresh retry expire NX_TTL)').format(
+                      ('{NS} {mail} {serial} {refresh} {retry} {expire} {NX_TTL}'+
+                      ' ; primns mail serial refresh retry expire NX_TTL').format(
                           NS=self.abs_hostname(self._NS[0]), mail=self._mail, serial=serial,
                           refresh=time(self._refresh), retry=time(self._retry), expire=time(self._expire),
                           NX_TTL=time(self._NX_TTL))
