@@ -1,5 +1,5 @@
 import re, datetime
-import typing
+#from typing import *
 
 
 second = 1

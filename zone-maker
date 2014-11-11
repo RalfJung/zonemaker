@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import sys, os
 from zonemaker.zone import Zone
-import typing
+#import typing
 
 def load_module(name, path, write_bytecode = False):
     import importlib.machinery
