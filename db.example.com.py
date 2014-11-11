@@ -13,11 +13,18 @@ mail = [MX('mx', 10)] # this is first server name, then priority (as in plain DN
 def HTTPS(key):
     return TLSA(Protocol.TCP, 443, TLSA.Usage.EndEntity, TLSA.Selector.Full, TLSA.MatchingType.SHA256, key)
 
+# setup TTLs by record type
+TTLs = {
+    '':     1*day,  # special value: default TTL
+    'NX':   1*hour, # special value: TTL for NXDOMAIN replies
+    'A':    1*hour, # for the rest, just use the type of the resource records
+    'AAAA': 1*hour,
+}
+
 # Now to the actual zone: the header part should be fairly self-explanatory.
-__zone__ = Zone('example.com.', serialfile = 'db.example.com.srl', mail = 'root@example.com.',
-    NS = ['ns', 'ns.example.org.'],
+__zone__ = Zone('example.com.', serialfile = 'db.example.com.srl',
+    mail = 'root@example.com.', NS = ['ns', 'ns.example.org.'], TTLs = TTLs,
     secondary_refresh = 6*hour, secondary_retry = 1*hour, secondary_expire = 7*day,
-    NX_TTL = 1*hour, A_TTL = 1*hour, other_TTL = 1*day,
     # Here come the actual domains. Each takes records as argument, either individually or as lists.
     domains = {
         '.':            Name(one, mail), # this will all all records from the list "one" and the list "mail" to this name
