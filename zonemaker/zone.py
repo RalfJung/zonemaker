@@ -258,7 +258,7 @@ class Zone:
         try:
             with open(self._serialfile) as f:
                 cur_serial = int(f.read())
-        except OSError: # FileNotFoundError has been added in Python 3.3
+        except (OSError, IOError): # FileNotFoundError has been added in Python 3.3
             pass
         # increment serial
         cur_serial += 1
