@@ -1,5 +1,4 @@
 import re, datetime
-from ipaddress import IPv4Address, IPv6Address
 from typing import List, Dict, Any, Iterator, Tuple, Sequence
 
 
@@ -10,6 +9,8 @@ day = 24*hour
 week = 7*day
 
 REGEX_label = r'[a-zA-Z90-9]([a-zA-Z90-9-]{0,61}[a-zA-Z90-9])?' # max. 63 characters; must not start or end with hyphen
+REGEX_ipv4  = r'^\d{1,3}(\.\d{1,3}){3}$'
+REGEX_ipv6  = r'^[a-fA-F0-9]{1,4}(:[a-fA-F0-9]{1,4}){7}$'
 
 def check_label(label: str) -> str:
     pattern = r'^{0}$'.format(REGEX_label)
@@ -28,6 +29,16 @@ def check_hex(data: str) -> str:
     if re.match('^[a-fA-F0-9]+$', data):
         return data
     raise Exception(data+" is not valid hex data")
+
+def check_ipv4(address: str) -> str:
+    if re.match(REGEX_ipv4, address):
+        return address
+    raise Exception(address+" is not a valid IPv4 address")
+
+def check_ipv6(address: str) -> str:
+    if re.match(REGEX_ipv6, address):
+        return address
+    raise Exception(address+" is not a valid IPv6 address")
 
 def time(time: int) -> str:
     if time == 0:
@@ -72,7 +83,7 @@ class Digest:
 ## Record types
 class A:
     def __init__(self, address: str) -> None:
-        self._address = IPv4Address(address)
+        self._address = check_ipv4(address)
     
     def generate_rr(self, owner: str, zone: 'Zone') -> Any:
         return zone.RR(owner, 'A', self._address)
@@ -80,7 +91,7 @@ class A:
 
 class AAAA:
     def __init__(self, address: str) -> None:
-        self._address = IPv6Address(address)
+        self._address = check_ipv6(address)
     
     def generate_rr(self, owner: str, zone: 'Zone') -> Any:
         return zone.RR(owner, 'AAAA', self._address)
