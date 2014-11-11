@@ -4,11 +4,17 @@ from zonemaker.zone import Zone
 #import typing
 
 def load_module(name, path, write_bytecode = False):
-    import importlib.machinery
     old_val = sys.dont_write_bytecode
     sys.dont_write_bytecode = not write_bytecode
-    module = importlib.machinery.SourceFileLoader(name, path).load_module()
-    sys.dont_write_bytecode = old_val
+    module = None
+    try:
+        from importlib.machinery import SourceFileLoader
+        module = SourceFileLoader(name, path).load_module()
+    except ImportError:
+        import imp
+        module = imp.load_source(name, path)
+    finally:
+        sys.dont_write_bytecode = old_val
     return module
 
 def make_zone(filename: str) -> None:

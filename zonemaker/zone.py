@@ -13,12 +13,14 @@ REGEX_ipv4  = r'^\d{1,3}(\.\d{1,3}){3}$'
 REGEX_ipv6  = r'^[a-fA-F0-9]{1,4}(:[a-fA-F0-9]{1,4}){7}$'
 
 def check_label(label: str) -> str:
+    label = str(label)
     pattern = r'^{0}$'.format(REGEX_label)
     if re.match(pattern, label):
         return label
     raise Exception(label+" is not a valid label")
 
 def check_hostname(name: str) -> str:
+    name = str(name)
     # check hostname for validity
     pattern = r'^{0}(\.{0})*\.?$'.format(REGEX_label)
     if re.match(pattern, name):
@@ -26,16 +28,19 @@ def check_hostname(name: str) -> str:
     raise Exception(name+" is not a valid hostname")
 
 def check_hex(data: str) -> str:
+    data = str(data)
     if re.match('^[a-fA-F0-9]+$', data):
         return data
     raise Exception(data+" is not valid hex data")
 
 def check_ipv4(address: str) -> str:
+    address = str(address)
     if re.match(REGEX_ipv4, address):
         return address
     raise Exception(address+" is not a valid IPv4 address")
 
 def check_ipv6(address: str) -> str:
+    address = str(address)
     if re.match(REGEX_ipv6, address):
         return address
     raise Exception(address+" is not a valid IPv6 address")
