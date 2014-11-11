@@ -13,9 +13,8 @@ def load_module(name, path, write_bytecode = False):
 
 def make_zone(filename: str) -> None:
     zonefile = load_module(os.path.basename(filename), filename)
-    zones = zonefile.__zones__ # type: Sequence[Zone]
-    for zone in zones:
-        zone.write()
+    zone = zonefile.__zone__ # type: Zone
+    zone.write()
 
 if __name__ == "__main__":
     for name in sys.argv[1:]:
