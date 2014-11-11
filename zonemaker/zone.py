@@ -1,5 +1,5 @@
 import re, datetime
-from typing import List, Dict, Any, Iterator, Tuple, Sequence
+import typing
 
 
 second = 1
@@ -54,7 +54,7 @@ def time(time: int) -> str:
     else:
         return str(time)
 
-def column_widths(datas: Sequence, widths: Sequence[int]):
+def column_widths(datas: 'Sequence', widths: 'Sequence[int]'):
     assert len(datas) == len(widths)+1, "There must be as one more data points as widths"
     result = ""
     width_sum = 0
@@ -85,7 +85,7 @@ class A:
     def __init__(self, address: str) -> None:
         self._address = check_ipv4(address)
     
-    def generate_rr(self, owner: str, zone: 'Zone') -> Any:
+    def generate_rr(self, owner: str, zone: 'Zone') -> 'Any':
         return zone.RR(owner, 'A', self._address)
 
 
@@ -93,7 +93,7 @@ class AAAA:
     def __init__(self, address: str) -> None:
         self._address = check_ipv6(address)
     
-    def generate_rr(self, owner: str, zone: 'Zone') -> Any:
+    def generate_rr(self, owner: str, zone: 'Zone') -> 'Any':
         return zone.RR(owner, 'AAAA', self._address)
 
 
@@ -102,7 +102,7 @@ class MX:
         self._priority = int(prio)
         self._name = check_hostname(name)
     
-    def generate_rr(self, owner: str, zone: 'Zone') -> Any:
+    def generate_rr(self, owner: str, zone: 'Zone') -> 'Any':
         return zone.RR(owner, 'MX', '{0} {1}'.format(self._priority, zone.abs_hostname(self._name)))
 
 
@@ -115,7 +115,7 @@ class SRV:
         self._port = int(port)
         self._name = check_hostname(name)
     
-    def generate_rr(self, owner: str, zone: 'Zone') -> Any:
+    def generate_rr(self, owner: str, zone: 'Zone') -> 'Any':
         return zone.RR('_{0}._{1}.{2}'.format(self._service, self._protocol, owner), 'SRV',
                        '{0} {1} {2} {3}'.format(self._priority, self._weight, self._port, zone.abs_hostname(self._name)))
 
@@ -144,7 +144,7 @@ class TLSA:
         self._matching_type = int(matching_type)
         self._data = check_hex(data)
     
-    def generate_rr(self, owner: str, zone: 'Zone') -> Any:
+    def generate_rr(self, owner: str, zone: 'Zone') -> 'Any':
         return zone.RR('_{0}._{1}.{2}'.format(self._port, self._protocol, owner), 'TLSA', '{0} {1} {2} {3}'.format(self._usage, self._selector, self._matching_type, self._data))
 
 
@@ -152,7 +152,7 @@ class CNAME:
     def __init__(self, name: str) -> None:
         self._name = check_hostname(name)
     
-    def generate_rr(self, owner: str, zone: 'Zone') -> Any:
+    def generate_rr(self, owner: str, zone: 'Zone') -> 'Any':
         return zone.RR(owner, 'CNAME', zone.abs_hostname(self._name))
 
 
@@ -160,7 +160,7 @@ class NS:
     def __init__(self, name: str) -> None:
         self._name = check_hostname(name)
     
-    def generate_rr(self, owner: str, zone: 'Zone') -> Any:
+    def generate_rr(self, owner: str, zone: 'Zone') -> 'Any':
         return zone.RR(owner, 'NS', zone.abs_hostname(self._name))
 
 
@@ -171,15 +171,15 @@ class DS:
         self._alg = int(alg)
         self._digest = int(digest)
     
-    def generate_rr(self, owner: str, zone: 'Zone') -> Any:
+    def generate_rr(self, owner: str, zone: 'Zone') -> 'Any':
         return zone.RR(owner, 'DS', '{0} {1} {2} {3}'.format(self._tag, self._alg, self._digest, self._key))
 
 ## Higher-level classes
 class Name:
-    def __init__(self, *records: List[Any]) -> None:
+    def __init__(self, *records: 'List[Any]') -> None:
         self._records = records
     
-    def generate_rrs(self, owner: str, zone: 'Zone') -> Iterator:
+    def generate_rrs(self, owner: str, zone: 'Zone') -> 'Iterator':
         for record in self._records:
             # this could still be a list
             if isinstance(record, list):
@@ -202,10 +202,10 @@ def SecureDelegation(name: str, tag: int, alg: int, digest: int, key: str) -> Na
 
 
 class Zone:
-    def __init__(self, name: str, serialfile: str, mail: str, NS: List[str],
+    def __init__(self, name: str, serialfile: str, mail: str, NS: 'List[str]',
                  secondary_refresh: int, secondary_retry: int, secondary_expire: int,
                  NX_TTL: int = None, A_TTL: int = None, other_TTL: int = None,
-                 domains: Dict[str, Any] = {}) -> None:
+                 domains: 'Dict[str, Any]' = {}) -> None:
         self._serialfile = serialfile
         
         if not name.endswith('.'): raise Exception("Expected an absolute hostname")
@@ -263,7 +263,7 @@ class Zone:
         # be done
         return cur_serial
     
-    def generate_rrs(self) -> Iterator:
+    def generate_rrs(self) -> 'Iterator':
         # SOA record
         serial = self.inc_serial()
         yield self.RR(self._name, 'SOA',
