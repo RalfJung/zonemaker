@@ -1,4 +1,4 @@
-from zonemaker.zone import *
+from zone import *
 
 # Our IP addresses; we have machine one and machine two.
 one4 = A("172.16.254.1") # for each record type, there's a corresponding class with the same name

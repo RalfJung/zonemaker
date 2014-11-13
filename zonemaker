@@ -27,7 +27,7 @@
 # either expressed or implied, of the FreeBSD Project.
 
 import sys, os
-from zonemaker.zone import Zone
+from zone import Zone
 #import typing
 
 def load_module(name, path, write_bytecode = False):
