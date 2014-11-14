@@ -1,5 +1,5 @@
-zonemaker: Write your DNS zone files in Python
-==============================================
+zonemaker: Python DNS zone files
+================================
 
 Introduction
 ------------
