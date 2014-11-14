@@ -1,0 +1,3 @@
+db.example.com: db.example.com.py
+	@sudo -u user ~user/zonemaker/zone-maker $< | tee $@
+	@rndc reload example.com
