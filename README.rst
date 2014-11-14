@@ -15,7 +15,7 @@ zonemaker is reasonably simple and close to the actual structure of a DNS
 zonefile, so it is suited for small setups. The output of zonemaker is a 
 standard zonefile, so it can be used with any DNS server supporting those.
 
-.. _dyn-nsupdate: https://www.ralfj.de/projects/zonemaker
+.. _zonemaker: https://www.ralfj.de/projects/zonemaker
 
 Usage
 -----
