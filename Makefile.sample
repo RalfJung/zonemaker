@@ -1,4 +1,7 @@
+all: db.example.com
+
 db.example.com: db.example.com.py
 	@sudo -u user ~user/zonemaker/zone-maker $< > $@ || rm -f $@
 	@cat $@
-	@rndc reload example.com
+	@echo
+	@rndc reload example.com || rm -f $@
