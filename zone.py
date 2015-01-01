@@ -139,7 +139,7 @@ class TXT:
         # test for bad characters
         for c in ('\n', '\r', '\t'):
             if c in text:
-                raise Exception("TXT record {0} containts invalid character")
+                raise Exception("TXT record {0} contains invalid character")
         # escape text
         for c in ('\\', '\"'):
             text = text.replace(c, '\\'+c)
