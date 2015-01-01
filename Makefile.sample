@@ -1,3 +1,4 @@
 db.example.com: db.example.com.py
-	@sudo -u user ~user/zonemaker/zone-maker $< | tee $@
+	@sudo -u user ~user/zonemaker/zone-maker $< > $@ || rm -f $@
+	@cat $@
 	@rndc reload example.com
