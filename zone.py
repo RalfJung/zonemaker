@@ -171,7 +171,7 @@ class DKIM(TXT): # helper class to treat DKIM more antively
         super().__init__("v={0}; k={1}; p={2}".format(version, alg, key))
     
     def generate_rr(self, owner, zone):
-        return super().generate_rr('{0}._domainkey.{1}'.format(self._selector, owner), zone)
+        return super().generate_rr('{0}._domainkey.{1}'.format(self._selector, zone.abs_hostname(owner)), zone)
 
 
 class SRV:
