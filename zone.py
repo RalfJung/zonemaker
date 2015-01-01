@@ -260,6 +260,8 @@ class Zone:
         return column_widths((self.abs_hostname(owner), time(self.getTTL(recordType)), recordType, data), (32, 8, 8))
     
     def abs_hostname(self, name):
+        if name == '':
+            raise Exception("Empty domain name is not valid")
         if name == '.' or name == '@':
             return self._name
         if name.endswith('.'):
