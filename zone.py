@@ -56,6 +56,13 @@ def check_hex(data: str) -> str:
         return data
     raise Exception(data+" is not valid hex data")
 
+def check_base64(data: str) -> str:
+    data = str(data)
+    if re.match('^[a-zA-Z0-9+/=]+$', data):
+        return data
+    raise Exception(data+" is not valid hex data")
+
+
 def check_ipv4(address: str) -> str:
     address = str(address)
     if re.match(REGEX_ipv4, address):
@@ -160,11 +167,11 @@ class DKIM(TXT): # helper class to treat DKIM more antively
         self._selector = check_label(selector)
         version = check_label(version)
         alg = check_label(alg)
-        key = check_key(key)
-        super(self).__init__("v={0}; k={1}; p={2}".format(version, alg, key))
+        key = check_base64(key)
+        super().__init__("v={0}; k={1}; p={2}".format(version, alg, key))
     
     def generate_rr(self, owner, zone):
-        return super(self).generate_rr('{0}._domainkey.{1}'.format(self._selector, owner), zone)
+        return super().generate_rr('{0}._domainkey.{1}'.format(self._selector, owner), zone)
 
 
 class SRV:
