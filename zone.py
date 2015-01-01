@@ -134,6 +134,21 @@ class MX:
         return zone.RR(owner, 'MX', '{0} {1}'.format(self._priority, zone.abs_hostname(self._name)))
 
 
+class TXT:
+    def __init__(self, name: str, text: str) -> None:
+        # test for bad characters
+        for c in ('\n', '\r', '\t'):
+            if c in text:
+                raise Exception("TXT record {0} containts invalid character")
+        # escape text
+        for c in ('\\', '\"'):
+            text = text.replace(c, '\\'+c)
+        self._text = text
+    
+    def generate_rr(self, owner:str, zone: 'Zone') -> 'Any':
+        return zone.RR(owner, 'TXT', '"{0}"'.format(self._text))
+
+
 class SRV:
     def __init__(self, protocol: str, service: str, name: str, port: int, prio: int, weight: int) -> None:
         self._service = check_label(service)
