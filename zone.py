@@ -135,7 +135,7 @@ class MX:
 
 
 class TXT:
-    def __init__(self, name: str, text: str) -> None:
+    def __init__(self, text: str) -> None:
         # test for bad characters
         for c in ('\n', '\r', '\t'):
             if c in text:
@@ -147,6 +147,24 @@ class TXT:
     
     def generate_rr(self, owner:str, zone: 'Zone') -> 'Any':
         return zone.RR(owner, 'TXT', '"{0}"'.format(self._text))
+
+
+class DKIM(TXT): # helper class to treat DKIM more antively
+    class Version:
+        DKIM1 = "DKIM1"
+    
+    class Algorithm:
+        RSA = "rsa"
+    
+    def __init__(self, selector, version, alg, key):
+        self._selector = check_label(selector)
+        version = check_label(version)
+        alg = check_label(alg)
+        key = check_key(key)
+        super(self).__init__("v={0}; k={1}; p={2}".format(version, alg, key))
+    
+    def generate_rr(self, owner, zone):
+        return super(self).generate_rr('{0}._domainkey.{1}'.format(self._selector, owner), zone)
 
 
 class SRV:
