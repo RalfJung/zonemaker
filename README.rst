@@ -28,10 +28,11 @@ updates the zone(s), and then tells BIND to reload, could look like.
 Source, License
 ---------------
 
-You can find the sources in the `git repository`_. They are provided under a 
-2-clause BSD license.
+You can find the sources in the `git repository`_ and `on GitHub`_. They are
+provided under a 2-clause BSD license.
 
 .. _git repository: http://www.ralfj.de/git/zonemaker.git
+.. _on GitHub: https://github.com/RalfJung/zonemaker
 
 Contact
 -------
