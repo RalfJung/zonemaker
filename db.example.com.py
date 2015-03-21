@@ -27,7 +27,7 @@ __zone__ = Zone('example.com.', serialfile = 'db.example.com.srl',
     secondary_refresh = 6*hour, secondary_retry = 1*hour, secondary_expire = 7*day,
     # Here come the actual domains. Each takes records as argument, either individually or as lists.
     domains = {
-        '.':            Name(one, mail), # this will all all records from the list "one" and the list "mail" to this name
+        '@':            Name(one, mail, HTTPS('0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef')), # this will all all records from the list "one" and the list "mail" to this name
         'ns':           Name(one),
         'ipv4.ns':      Name(one4), # just a single record
         'ipv6.ns':      Name(one6),
