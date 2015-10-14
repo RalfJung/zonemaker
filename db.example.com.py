@@ -42,4 +42,9 @@ __zone__ = Zone('example.com.', serialfile = 'db.example.com.srl',
         #
         'sub1':         Delegation('ns.example.org.'), # this adds an NS record
         'sub2':         SecureDelegation('ns.example.com.', 12345, Algorithm.RSA_SHA256, Digest.SHA256, '0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF'), # this adds an NS and a DS record
+        #
+        'local': {
+            'one':      Name(one4),
+            'stuff':    CName('one'),
+        },
     })
