@@ -33,7 +33,7 @@ week = 7*day
 
 REGEX_label = r'[a-zA-Z90-9]([a-zA-Z90-9-]{0,61}[a-zA-Z90-9])?' # max. 63 characters; must not start or end with hyphen
 REGEX_ipv4  = r'^\d{1,3}(\.\d{1,3}){3}$'
-REGEX_ipv6  = r'^[a-fA-F0-9]{1,4}(:[a-fA-F0-9]{1,4}){7}$'
+REGEX_ipv6  = r'^[a-fA-F0-9]{1,4}(::?[a-fA-F0-9]{1,4}){1,7}$'
 
 def check_label(label: str) -> str:
     label = str(label)
