@@ -296,12 +296,12 @@ def CName(name: str) -> Name:
     return Name(CNAME(name))
 
 
-def Delegation(name: str, *names) -> Name:
-    return Name(NS(name), list(map(NS, names)))
+def Delegation(*names) -> Name:
+    return Name(list(map(NS, names)))
 
 
-def SecureDelegation(name: str, tag: int, alg: int, digest: int, key: str) -> Name:
-    return Name(NS(name), DS(tag, alg, digest, key))
+def SecureDelegation(tag: int, alg: int, digest: int, key: str, *names) -> Name:
+    return Name(DS(tag, alg, digest, key), list(map(NS, names)))
 
 
 class Zone:

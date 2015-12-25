@@ -41,7 +41,7 @@ __zone__ = Zone('example.com.', serialfile = 'db.example.com.srl',
         'orgstuff':     CName('example.org.'), # CNAMEs cannot be combined with other records
         #
         'sub1':         Delegation('ns.example.org.', 'ns'), # this adds an NS record
-        'sub2':         SecureDelegation('ns.example.com.', 12345, Algorithm.RSA_SHA256, Digest.SHA256, '0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF'), # this adds an NS and a DS record
+        'sub2':         SecureDelegation(12345, Algorithm.RSA_SHA256, Digest.SHA256, '0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF', 'ns.example.com.'), # this adds an NS and a DS record
         #
         'local': {
             'one':      Name(one4),
