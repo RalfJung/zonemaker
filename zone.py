@@ -296,8 +296,8 @@ def CName(name: str) -> Name:
     return Name(CNAME(name))
 
 
-def Delegation(name: str) -> Name:
-    return Name(NS(name))
+def Delegation(name: str, *names) -> Name:
+    return Name(NS(name), list(map(NS, names)))
 
 
 def SecureDelegation(name: str, tag: int, alg: int, digest: int, key: str) -> Name:
