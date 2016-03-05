@@ -110,6 +110,11 @@ def concatenate(root, path):
         return path
     return path+"."+root
 
+def escape_TXT(text):
+    for c in ('\\', '\"'):
+        text = text.replace(c, '\\'+c)
+    return text
+
 
 ## Enums
 class Protocol:
@@ -182,13 +187,17 @@ class TXT:
         for c in ('\n', '\r', '\t'):
             if c in text:
                 raise Exception("TXT record {0} contains invalid character")
-        # escape text
-        for c in ('\\', '\"'):
-            text = text.replace(c, '\\'+c)
         self._text = text
     
     def generate_rr(self):
-        return RR('@', 'TXT', '"{0}"'.format(self._text))
+        text = escape_TXT(self._text)
+        # split into chunks of max. 255 characters; be careful not to split right after a backslash
+        chunks = re.findall(r'.{0,254}[^\\]', text)
+        assert sum(len(c) for c in chunks) == len (text)
+        chunksep = '"\n' + ' '*20 + '"'
+        chunked = '( "' + chunksep.join(chunks) + '" )'
+        # generate the chunks
+        return RR('@', 'TXT', chunked)
 
 
 class DKIM(TXT): # helper class to treat DKIM more antively
