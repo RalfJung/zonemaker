@@ -27,7 +27,7 @@ reload, could look like.
 ## Source, License
 
 You can find the sources in the
-[git repository](http://www.ralfj.de/git/zonemaker.git) (also
+[git repository](https://git.ralfj.de/zonemaker.git) (also
 available [on GitHub](https://github.com/RalfJung/zonemaker)).  They
 are provided under a
 [2-clause BSD license](http://opensource.org/licenses/bsd-license.php). See
