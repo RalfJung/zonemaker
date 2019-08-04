@@ -259,6 +259,19 @@ class TLSA:
     def generate_rr(self):
         return RR('_{}._{}'.format(self._port, self._protocol), 'TLSA', '{} {} {} {}'.format(self._usage, self._selector, self._matching_type, self._data))
 
+class CAA:
+    class Tag:
+        Issue = "issue"
+        IssueWild = "issuewild"
+
+    def __init__(self, flag: int, tag: str, value: str) -> None:
+        self._flag = int(flag)
+        self._tag = str(tag)
+        self._value = str(value)
+
+    def generate_rr(self):
+        return RR('@', 'CAA', '{} {} {}'.format(self._flag, self._tag, self._value))
+
 
 class CNAME:
     def __init__(self, name: str) -> None:
