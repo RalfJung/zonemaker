@@ -18,7 +18,7 @@ supporting those.
 
 ## Usage
 
-Simply call `zonemaker` with the zone python file as argument. The
+Simply call `zonemaker` with the zone Python file as argument. The
 result will be printed to stdout. See `db.example.com.py` for a sample
 file demonstrating the use of the interface. `Makefile.sample` shows
 how a makefile which first updates the zone(s), and then tells BIND to
