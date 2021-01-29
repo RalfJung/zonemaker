@@ -21,7 +21,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import re, datetime
+import re, datetime, os, subprocess, re
 #from typing import *
 
 
@@ -255,6 +255,21 @@ class TLSA:
         self._selector = int(selector)
         self._matching_type = int(matching_type)
         self._data = check_hex(data)
+
+    def from_crt(protocol: str, port: int, crtfile: str):
+        '''Generate a TLSA record from a given certificate file.'''
+        open(crtfile).close() # check if the file exists (and throw python-style exceptions if it dos not)
+        # Call the shell script to do the actual work
+        dir = os.path.dirname(os.path.realpath(__file__))
+        cmd = [dir+"/tlsa", crtfile]
+        #print(" ".join(cmd), file=sys.stderr)
+        zone_line = subprocess.check_output(cmd).decode("utf-8").strip().split("\n")[-1]
+        m = re.match("^([0-9]+) ([0-9]+) ([0-9]+) ([0-9a-zA-Z]+)$", zone_line)
+        assert m is not None
+        # make sure we match on *the key only*, so that we can renew the certificate without harm
+        assert int(m.group(1)) == TLSA.Usage.EndEntity
+        assert int(m.group(2)) == TLSA.Selector.SubjectPublicKeyInfo
+        return TLSA(protocol, port, TLSA.Usage.EndEntity, TLSA.Selector.SubjectPublicKeyInfo, int(m.group(3)), m.group(4))
     
     def generate_rr(self):
         return RR('_{}._{}'.format(self._port, self._protocol), 'TLSA', '{} {} {} {}'.format(self._usage, self._selector, self._matching_type, self._data))
